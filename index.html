@@ -589,12 +589,18 @@ function drawVecChart(emb) {
 async function runBenchmark() {
   const text=document.getElementById('qInput').value.trim()||'binary tree algorithm';
   const emb=textToEmbedding(text),metric=document.getElementById('metric').value;
+  const section=document.getElementById('benchSec');
+  const bars=document.getElementById('benchBars');
+  section.style.display='block';
+  bars.innerHTML='<div style="color:var(--muted);font-size:11px">Running Brute Force, KD-Tree, and HNSW…</div>';
+  section.scrollIntoView({behavior:'smooth',block:'nearest'});
   try {
     const r=await fetch(`${API}/benchmark?v=${emb.join(',')}&k=5&metric=${metric}`);
+    if (!r.ok) throw new Error(`Server returned ${r.status}`);
     const d=await r.json();
-    document.getElementById('benchSec').style.display='block';
+    if (d.error) throw new Error(d.error);
     const mx=Math.max(d.bruteforceUs,d.kdtreeUs,d.hnswUs,1);
-    document.getElementById('benchBars').innerHTML=[
+    bars.innerHTML=[
       {lbl:'Brute Force',us:d.bruteforceUs,col:'#f38ba8'},
       {lbl:'KD-Tree',    us:d.kdtreeUs,    col:'#89dceb'},
       {lbl:'HNSW',       us:d.hnswUs,      col:'#b388ff'},
@@ -602,7 +608,9 @@ async function runBenchmark() {
       const pct=Math.max((us/mx)*100,2),disp=us<1000?us+' μs':(us/1000).toFixed(2)+' ms';
       return `<div class="brow"><div class="blabel"><span style="color:${col}">${lbl}</span><span style="color:var(--muted)">${disp}</span></div><div class="btrack"><div class="bfill" style="width:${pct}%;background:${col}"></div></div></div>`;
     }).join('');
-  } catch(_) {}
+  } catch(err) {
+    bars.innerHTML=`<div style="color:var(--red);font-size:11px">Benchmark failed: ${err.message}. Recompile and restart the Java server.</div>`;
+  }
 }
 
 async function loadHNSW() {
