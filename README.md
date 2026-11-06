@@ -141,7 +141,7 @@ The dashboard projects the 20 demo vectors into two dimensions with PCA, showing
 3. Long text is split into 250-word chunks with a 30-word overlap.
 4. Ask a question in the RAG panel.
 
-The server embeds the question, retrieves similar document chunks by cosine distance, and sends those chunks to `llama3.2` with the question.
+The server embeds the question, retrieves similar chunks with the document HNSW index (using an exact brute-force fallback below 10 chunks), and sends those chunks to `llama3.2` with the question.
 
 ---
 
